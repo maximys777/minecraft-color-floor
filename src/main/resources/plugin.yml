@@ -1,0 +1,4 @@
+name: ColorFloor
+version: '${version}'
+
+main: org.maximys.colorFloor.ColorFloor
