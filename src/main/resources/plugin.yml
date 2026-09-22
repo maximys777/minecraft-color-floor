@@ -13,3 +13,4 @@ commands:
     usage: |
       /<command> setarena - set arena center here
       /<command> build - build floor on arena
+      /<command> undo - floor removes

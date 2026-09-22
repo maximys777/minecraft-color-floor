@@ -3,15 +3,17 @@ package org.maximys.colorFloor;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.maximys.colorFloor.command.CfCommand;
-import org.maximys.colorFloor.command.FloorCommand;
+import org.maximys.colorFloor.manager.ArenaManager;
 
 public final class ColorFloor extends JavaPlugin {
 
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
-        getCommand("floor").setExecutor(new FloorCommand());
-        getCommand("cf").setExecutor(new CfCommand(this));
+
+        ArenaManager arenaManager = new ArenaManager(this);
+
+        getCommand("cf").setExecutor(new CfCommand(arenaManager));
         getLogger().info(ChatColor.GOLD + "Plugin is working");
     }
 
