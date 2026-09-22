@@ -6,4 +6,10 @@ main: org.maximys.colorFloor.ColorFloor
 commands:
   floor:
     description: "Create 5x5 platform"
-    usage: "/floor"
+    usage: "/<command> [undo]"
+
+  cf:
+    description: "ColorFloor arena commands"
+    usage: |
+      /<command> setarena - set arena center here
+      /<command> build - build floor on arena
