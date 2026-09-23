@@ -9,13 +9,17 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.maximys.colorFloor.game.FloorState;
+import org.maximys.colorFloor.game.JoinResult;
 import org.maximys.colorFloor.manager.ArenaManager;
+import org.maximys.colorFloor.manager.GameManager;
 
 public class CfCommand implements CommandExecutor {
     private final ArenaManager arenaManager;
+    private final GameManager gameManager;
 
-    public CfCommand(ArenaManager arenaManager) {
+    public CfCommand(ArenaManager arenaManager, GameManager gameManager) {
         this.arenaManager = arenaManager;
+        this.gameManager = gameManager;
     }
 
     @Override
@@ -52,8 +56,6 @@ public class CfCommand implements CommandExecutor {
 
                 if (state == FloorState.ARENA_NOT_SET) {
                     player.sendMessage(ChatColor.YELLOW + "First set the arena");
-                } else if (state == FloorState.WORLD_NOT_FOUND) {
-                    player.sendMessage(ChatColor.YELLOW + "World not found");
                 } else if (state == FloorState.SUCCESS) {
                     player.sendMessage(ChatColor.YELLOW + "Building floor");
                 }
@@ -69,6 +71,44 @@ public class CfCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(ChatColor.GOLD + "Arena undo");
                 }
+                return true;
+            case "join":
+                if (args.length >= 2) {
+                    return false;
+                }
+                JoinResult joinResult = gameManager.join(player);
+
+                switch (joinResult) {
+                    case ALREADY_IN_GAME:
+                        player.sendMessage(ChatColor.RED + "You are already in game");
+                        return true;
+                    case GAME_IN_PROGRESS:
+                        player.sendMessage(ChatColor.RED + "Game in progress");
+                        return true;
+                    case ARENA_NOT_SET:
+                        player.sendMessage(ChatColor.RED + "Arena is not set");
+                        return true;
+                    case FULL:
+                        player.sendMessage(ChatColor.RED + "Game is full");
+                        return true;
+                    case SUCCESS:
+                        player.sendMessage(ChatColor.GOLD + "Joined arena");
+                        return true;
+                }
+                return true;
+            case "leave":
+                if (args.length >= 2) {
+                    return false;
+                }
+
+                boolean leaveResult = gameManager.leave(player);
+
+                if (!leaveResult) {
+                    player.sendMessage(ChatColor.YELLOW + "First join the arena");
+                } else {
+                    player.sendMessage(ChatColor.GOLD + "Arena leave");
+                }
+
                 return true;
             default:
                 return false;

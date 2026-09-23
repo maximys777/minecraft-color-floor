@@ -1,6 +1,7 @@
 package org.maximys.colorFloor.manager;
 
 import org.bukkit.DyeColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -12,6 +13,7 @@ import org.maximys.colorFloor.game.FloorState;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 public class ArenaManager {
@@ -26,23 +28,13 @@ public class ArenaManager {
 
     public FloorState buildFloor() {
         FileConfiguration configuration = colorFloor.getConfig();
-        String worldName = configuration.getString("arena.world");
+        Optional<Location> center = getArenaCenter();
 
-        if (worldName == null) {
+        if (!center.isPresent()) {
             return FloorState.ARENA_NOT_SET;
         }
 
-        int x = configuration.getInt("arena.x");
-        int y = configuration.getInt("arena.y");
-        int z = configuration.getInt("arena.z");
-
-        World world = colorFloor.getServer().getWorld(worldName);
-
-        if (world == null) {
-            return FloorState.WORLD_NOT_FOUND;
-        }
-
-        Block arenaCenter = world.getBlockAt(x, y, z);
+        Block arenaCenter = center.get().getBlock();
 
         int floorSize = configuration.getInt("floorSize");
         int floorRadius = floorSize / 2;
@@ -72,6 +64,28 @@ public class ArenaManager {
             }
             return true;
         }
+    }
+
+    public Optional<Location> getArenaCenter() {
+        FileConfiguration configuration = colorFloor.getConfig();
+        String worldName = configuration.getString("arena.world");
+
+        if (worldName == null) {
+            return Optional.empty();
+        }
+
+        int x = configuration.getInt("arena.x");
+        int y = configuration.getInt("arena.y");
+        int z = configuration.getInt("arena.z");
+
+        World world = colorFloor.getServer().getWorld(worldName);
+
+        if (world == null) {
+            colorFloor.getLogger().warning("World" + worldName + " not found");
+            return Optional.empty();
+        }
+
+        return Optional.of(new Location(world, x, y, z));
     }
 
     private void generateFloor(int floorRadius, Block arenaCenter) {
