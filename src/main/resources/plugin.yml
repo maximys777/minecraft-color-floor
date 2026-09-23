@@ -14,3 +14,5 @@ commands:
       /<command> setarena - set arena center here
       /<command> build - build floor on arena
       /<command> undo - floor removes
+      /<command> join - joined to the game
+      /<command> leave - left from the game

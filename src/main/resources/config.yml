@@ -1,1 +1,3 @@
 floorSize: 5
+minPlayers: 1
+maxPlayers: 8
