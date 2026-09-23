@@ -1,5 +1,6 @@
 package org.maximys.colorFloor.manager;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.maximys.colorFloor.ColorFloor;
@@ -79,5 +80,20 @@ public class GameManager {
         }
 
         return true;
+    }
+
+    public void stopGame() {
+        if (!players.isEmpty()) {
+            for (Map.Entry<UUID, Location> entry : players.entrySet()) {
+                Player player = Bukkit.getPlayer(entry.getKey());
+
+                if (player != null) {
+                    player.teleport(entry.getValue());
+                }
+            }
+            players.clear();
+            state = GameState.WAIT_FOR_PLAYERS;
+            arenaManager.undoArena();
+        }
     }
 }
