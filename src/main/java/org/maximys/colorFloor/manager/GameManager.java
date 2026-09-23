@@ -3,9 +3,11 @@ package org.maximys.colorFloor.manager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 import org.maximys.colorFloor.ColorFloor;
 import org.maximys.colorFloor.game.GameState;
 import org.maximys.colorFloor.game.JoinResult;
+import org.maximys.colorFloor.task.CountdownTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +19,7 @@ public class GameManager {
     private final ArenaManager arenaManager;
     private final ColorFloor colorFloor;
     private GameState state = GameState.WAIT_FOR_PLAYERS;
+    private BukkitTask countdownTask;
 
     public GameManager(ArenaManager arenaManager, ColorFloor colorFloor) {
         this.arenaManager = arenaManager;
@@ -54,7 +57,10 @@ public class GameManager {
 
         if (players.size() >= playerMin && state == GameState.WAIT_FOR_PLAYERS) {
             state = GameState.START_SOON;
-            colorFloor.getLogger().info("At this moment will start counting");
+            int seconds = colorFloor.getConfig().getInt("countdownSeconds");
+
+            countdownTask = new CountdownTask(this, seconds)
+                    .runTaskTimer(colorFloor, 0, 20L);
         }
 
         return JoinResult.SUCCESS;
@@ -72,10 +78,15 @@ public class GameManager {
 
         if (state == GameState.START_SOON && players.size() < playerMin) {
             state = GameState.WAIT_FOR_PLAYERS;
-            colorFloor.getLogger().info("Players not enough to start the game");
+
+            cancelTimer();
         }
 
-        if (players.isEmpty() && state == GameState.WAIT_FOR_PLAYERS) {
+        if (players.isEmpty()) {
+            state = GameState.WAIT_FOR_PLAYERS;
+
+            cancelTimer();
+
             arenaManager.undoArena();
         }
 
@@ -94,6 +105,30 @@ public class GameManager {
             players.clear();
             state = GameState.WAIT_FOR_PLAYERS;
             arenaManager.undoArena();
+
+            cancelTimer();
+        }
+    }
+
+    public void broadcast(String message) {
+        if (!players.isEmpty()) {
+            players.keySet().forEach(player -> Bukkit.getPlayer(player).sendMessage(message));
+        }
+    }
+
+    public void startGame() {
+        state = GameState.GAME;
+
+        countdownTask = null;
+
+        broadcast("Game started");
+        colorFloor.getLogger().info("Game started");
+    }
+
+    private void cancelTimer() {
+        if (countdownTask != null) {
+            countdownTask.cancel();
+            countdownTask = null;
         }
     }
 }
