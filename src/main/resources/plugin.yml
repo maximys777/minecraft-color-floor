@@ -2,3 +2,17 @@ name: ColorFloor
 version: '${version}'
 
 main: org.maximys.colorFloor.ColorFloor
+
+commands:
+  floor:
+    description: "Create 5x5 platform"
+    usage: "/<command> [undo]"
+
+  cf:
+    description: "ColorFloor arena commands"
+    usage: |
+      /<command> setarena - set arena center here
+      /<command> build - build floor on arena
+      /<command> undo - floor removes
+      /<command> join - joined to the game
+      /<command> leave - left from the game
