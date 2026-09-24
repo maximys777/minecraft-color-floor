@@ -27,19 +27,13 @@ public class ArenaManager {
     }
 
     public FloorState buildFloor() {
-        FileConfiguration configuration = colorFloor.getConfig();
-        Optional<Location> center = getArenaCenter();
+        List<Block> floor = getFloor();
 
-        if (!center.isPresent()) {
+        if (floor.isEmpty()) {
             return FloorState.ARENA_NOT_SET;
         }
 
-        Block arenaCenter = center.get().getBlock();
-
-        int floorSize = configuration.getInt("floorSize");
-        int floorRadius = floorSize / 2;
-
-        generateFloor(floorRadius, arenaCenter);
+        generateFloor(floor);
         return FloorState.SUCCESS;
     }
 
@@ -81,25 +75,75 @@ public class ArenaManager {
         World world = colorFloor.getServer().getWorld(worldName);
 
         if (world == null) {
-            colorFloor.getLogger().warning("World" + worldName + " not found");
+            colorFloor.getLogger().warning("World " + worldName + " not found");
             return Optional.empty();
         }
 
         return Optional.of(new Location(world, x, y, z));
     }
 
-    private void generateFloor(int floorRadius, Block arenaCenter) {
+    private void generateFloor(List<Block> floor) {
         List<BlockState> blockStates = new ArrayList<>();
+
+        for (Block block : floor) {
+            blockStates.add(block.getState());
+            paintRandom(block);
+        }
+
+        savedStates.push(blockStates);
+    }
+
+    private List<Block> getFloor() {
+        List<Block> result = new ArrayList<>();
+
+        Optional<Location> arenaCenter = getArenaCenter();
+
+        if (!arenaCenter.isPresent()) {
+            return result;
+        }
+
+        int floorSize = colorFloor.getConfig().getInt("floorSize");
+        int floorRadius = floorSize / 2;
+
+        Block blockCenter = arenaCenter.get().getBlock();
+
         for (int dx = -floorRadius; dx <= floorRadius; dx++) {
             for (int dz = -floorRadius; dz <= floorRadius; dz++) {
-                int index = random.nextInt(dyeColors.length);
-                DyeColor dyeColor = dyeColors[index];
-                Block floorBlock = arenaCenter.getRelative(dx, 0, dz);
-                blockStates.add(floorBlock.getState());
-                floorBlock.setType(Material.WOOL);
-                floorBlock.setData(dyeColor.getWoolData());
+                Block floorBlock = blockCenter.getRelative(dx, 0, dz);
+                result.add(floorBlock);
             }
         }
-        savedStates.push(blockStates);
+        return result;
+    }
+
+    private void paintRandom(Block block) {
+        int index = random.nextInt(dyeColors.length);
+        DyeColor dyeColor = dyeColors[index];
+        block.setType(Material.WOOL);
+        block.setData(dyeColor.getWoolData());
+    }
+
+    public void recolorFloor() {
+        List<Block> blocks = getFloor();
+        for (Block b : blocks) {
+            paintRandom(b);
+        }
+    }
+
+    public void removeAllExcept(DyeColor color) {
+        List<Block> blocks = getFloor();
+        for (Block b : blocks) {
+            if (b.getData() != color.getWoolData()) {
+                b.setType(Material.AIR);
+            }
+        }
+    }
+
+    public Optional<DyeColor> randomFloorColor() {
+        List<Block> blocks = getFloor();
+        if (blocks.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(DyeColor.getByWoolData(blocks.get(random.nextInt(blocks.size())).getData()));
     }
 }
